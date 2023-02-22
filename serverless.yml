@@ -1,0 +1,105 @@
+service: charterandgo
+
+frameworkVersion: '3'
+
+custom:
+  tableName: 'sections-table-${self:provider.stage}'
+  tableName1: 'image-table-${self:provider.stage}'
+  tableName2: 'text-elements-table-${self:provider.stage}'
+
+provider:
+  name: aws
+  runtime: python3.9
+  profile: serverlessUser
+  stage: dev
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow                                                 #allows us to interact with Dynamodb
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:                                                     #resources we are accessing. The tables we have defined below
+        - { "Fn::GetAtt": ["SectionsTable", "Arn" ] }
+        - { "Fn::GetAtt": ["ImagesTable", "Arn" ] }
+        - { "Fn::GetAtt": ["TextTable", "Arn" ] }
+  environment:                                                      #environment variables so we can access our tables in dynamodb
+    SECTIONS_TABLE: ${self:custom.tableName}
+    IMAGES_TABLE: ${self:custom.tableName1}
+    TEXT_ELEMENTS_TABLE: ${self:custom.tableName2}
+
+functions:                                    #our lambda functions 
+  sections:
+    handler: handler.add_section              
+    events:                                   #here we are defining the events that cause our functions execute
+      - http:
+          path: addSection                    #when someone makes a post request at the endpoint specified by path the function runs
+          method: post
+          cors: true
+
+  images:
+    handler: handler.insert_Image
+    events:
+      - http:
+          path: placeImage
+          method: post
+          cors: true
+  
+  text:
+    handler: handler.insert_Text
+    events:
+      - http:
+          path: placeText
+          method: post
+          cors: true  
+
+resources:            
+  Resources:                                                #here we are defining our dynamodb tables
+    SectionsTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: name
+            AttributeType: S
+        KeySchema:                                          #this is like the table's primary key
+          -
+            AttributeName: name
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.tableName}                 #name of our table, it's defined in the custom property at the top of this file
+    ImagesTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:             
+        AttributeDefinitions:
+          - 
+            AttributeName: img_id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: img_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 10
+          WriteCapacityUnits: 10
+        TableName: ${self:custom.tableName1}
+    TextTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:             
+        AttributeDefinitions:
+          - 
+            AttributeName: text_id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: text_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 10
+          WriteCapacityUnits: 10
+        TableName: ${self:custom.tableName2}
