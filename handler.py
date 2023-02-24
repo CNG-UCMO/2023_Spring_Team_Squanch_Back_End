@@ -19,7 +19,7 @@ def add_section(event, context):
     content = ''
 
     #the string representing our html element
-    html = '<section class="' + name + '">' + content + '</section>' 
+    html = '<section class="pageSections">' + content + '</section>' 
     
     #here we are adding an item to the Sections table
     resp = client.put_item(
