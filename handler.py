@@ -17,19 +17,13 @@ client = boto3.client('dynamodb')
 def add_section(event, context):
     data = json.loads(event['body']) 
 
-    name = '{}'.format(data['name'])   #retrieves the name that was passed into this function, and formats it to a string
-    content = ''
-
-    #the string representing our html element
-    html = '<section class="pageSections">' + content + '</section>' 
+    name = '{}'.format(data['name'])   #retrieves the name that was passed into this function, and formats it to a string 
     
     #here we are adding an item to the Sections table
     resp = client.put_item(
         TableName=SECTIONS_TABLE,
         Item={
-            'name': {'S': name },
-            'content': {'S': content },
-            'html': {'S': html }
+            'name': {'S': name }
         },
         ConditionExpression='attribute_not_exists(#name)',     #this checks if the name already exists
         ExpressionAttributeNames={"#name": "name"}
@@ -37,8 +31,7 @@ def add_section(event, context):
    
    #this will be included in the response. It contains the html string
     body = {
-        "name": {'S': name},
-        "html": {'S': html}
+        "name": {'S': name}
     }
 
     #this is what we will return to whoever called us.  
@@ -83,6 +76,12 @@ def insert_Image(event, context):
         }
     )
 
+    newItem = { 'imgID': {}, 'imgHTML': {} }
+
+    
+    newItem['imgID']['S'] = img_id
+    newItem['imgHTML']['S'] = html
+
     #updating the content column of the section we placed the image in. It will hold the string representing the html image element
     #need to figure out how to not overwrite what was previously in there 
     client.update_item(
@@ -90,11 +89,12 @@ def insert_Image(event, context):
         Key={
             'name': {'S': section}
         },
-        UpdateExpression='SET content = :imgContent',
+        UpdateExpression='SET content = list_append(if_not_exists(content, :empty_list), :imgContent)',
         ExpressionAttributeValues={
-            ':imgContent': {
-                'S': html
-            }
+            ':imgContent': {'L': [{
+                'M': newItem
+            }]},
+            ':empty_list':{'L': []}
         }
     )
 
@@ -102,11 +102,6 @@ def insert_Image(event, context):
     body = {
             "section": {'S': section},
             "img_id": {'S': img_id},
-            "name": {'S': name},
-            "description": {'S': description},
-            "height": {'S': height},
-            "width": {'S': width},
-            "url": {'S': url},
             'html' : {'S': html}
     }
 
@@ -171,17 +166,23 @@ def insert_Text(event, context):
         }
     )
 
+    newItem = { 'txtID': {}, 'txtHTML': {} }
+
+    newItem['txtID']['S'] = text_id
+    newItem['txtHTML']['S'] = html
+
     #updates the section table and its content attribute. We place the html string in there
     client.update_item(
         TableName=SECTIONS_TABLE,
         Key={
             'name': {'S': section}
         },
-        UpdateExpression='SET content = :txtContent',
+        UpdateExpression='SET content = list_append(if_not_exists(content, :empty_list), :txtContent)',
         ExpressionAttributeValues={
-            ':txtContent': {
-                'S': html
-            }
+            ':txtContent': {'L': [{ 
+                'M' : newItem
+            }]},
+            ':empty_list':{'L': []}
         }
     )
 
@@ -189,11 +190,6 @@ def insert_Text(event, context):
     body = {
             "section": {'S': section},
             "text_id": {'S': text_id},
-            "content": {'S': content},
-            "list_title": {'S': list_title},
-            "list_content": {'S': list_content},
-            "ul": {'BOOL': unorderedList},
-            "ol": {'BOOL': orderedList}, 
             "html": {'S': html}
     }
 
