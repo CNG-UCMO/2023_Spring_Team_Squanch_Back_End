@@ -32,7 +32,7 @@ provider:
     TEXT_ELEMENTS_TABLE: ${self:custom.tableName2}
 
 functions:                                    #our lambda functions 
-  sections:
+  addSection:
     handler: handler.add_section              
     events:                                   #here we are defining the events that cause our functions execute
       - http:
@@ -40,7 +40,7 @@ functions:                                    #our lambda functions
           method: post
           cors: true
 
-  images:
+  addImages:
     handler: handler.insert_Image
     events:
       - http:
@@ -48,13 +48,33 @@ functions:                                    #our lambda functions
           method: post
           cors: true
   
-  text:
+  addText:
     handler: handler.insert_Text
     events:
       - http:
           path: placeText
           method: post
           cors: true  
+
+  getSections:
+    handler: handler.get_Sections
+    events:
+      - http:
+          path: getSections
+          method: get
+          cors: true
+
+  getSectionContent:
+    handler: handler.get_Section_Content
+    events:
+      - http:
+          path: getSectionContent/{secName}
+          method: get
+          cors: true
+          request:
+            parameters:
+              paths:
+                secName: true
 
 resources:            
   Resources:                                                #here we are defining our dynamodb tables

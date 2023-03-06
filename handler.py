@@ -2,12 +2,14 @@ import json
 import os
 import boto3
 import botocore
+from boto3.dynamodb.conditions import Key
 
 #These are our Dynamodb tables
 SECTIONS_TABLE = os.environ['SECTIONS_TABLE']
 IMAGES_TABLE = os.environ['IMAGES_TABLE']
 TEXT_TABLE = os.environ['TEXT_ELEMENTS_TABLE']
 
+dynamodb = boto3.resource('dynamodb', 'us-east-1')
 
 client = boto3.client('dynamodb')
 
@@ -203,4 +205,27 @@ def insert_Text(event, context):
 
     return response
 
+def get_Sections(event, context):
+    table = dynamodb.Table(SECTIONS_TABLE)
+    resp = table.scan(ProjectionExpression = '#nme', ExpressionAttributeNames = {'#nme': 'name'})['Items']
+    response = {
+        'statusCode': 200,
+        'body': json.dumps(resp)
+    }
+
+    return response
+
+def get_Section_Content(event, context):
+    section_name = '{}'.format(event['pathParameters']['secName'])
+
+    table = dynamodb.Table(SECTIONS_TABLE)
+    resp = table.query(KeyConditionExpression=Key('name').eq(section_name))
+
+    items = resp.get("Items", None)
     
+    response = {
+        'statusCode': 200,
+        'body': json.dumps(items[0]['content'])
+    }
+
+    return response
