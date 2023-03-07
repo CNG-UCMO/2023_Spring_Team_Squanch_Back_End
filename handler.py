@@ -18,12 +18,16 @@ def add_section(event, context):
     data = json.loads(event['body']) 
 
     name = '{}'.format(data['name'])   #retrieves the name that was passed into this function, and formats it to a string 
-    
+    imgContent = []
+    txtContent = []
+
     #here we are adding an item to the Sections table
     resp = client.put_item(
         TableName=SECTIONS_TABLE,
         Item={
-            'name': {'S': name }
+            'name': {'S': name },
+            'ImageContent': {'L': imgContent },
+            'TextContent': {'L' : txtContent }
         },
         ConditionExpression='attribute_not_exists(#name)',     #this checks if the name already exists
         ExpressionAttributeNames={"#name": "name"}
@@ -89,7 +93,7 @@ def insert_Image(event, context):
         Key={
             'name': {'S': section}
         },
-        UpdateExpression='SET content = list_append(if_not_exists(content, :empty_list), :imgContent)',
+        UpdateExpression='SET ImageContent = list_append(if_not_exists(content, :empty_list), :imgContent)',
         ExpressionAttributeValues={
             ':imgContent': {'L': [{
                 'M': newItem
@@ -177,7 +181,7 @@ def insert_Text(event, context):
         Key={
             'name': {'S': section}
         },
-        UpdateExpression='SET content = list_append(if_not_exists(content, :empty_list), :txtContent)',
+        UpdateExpression='SET TextContent = list_append(if_not_exists(content, :empty_list), :txtContent)',
         ExpressionAttributeValues={
             ':txtContent': {'L': [{ 
                 'M' : newItem
@@ -221,7 +225,7 @@ def get_Section_Content(event, context):
     
     response = {
         'statusCode': 200,
-        'body': json.dumps(items[0]['content'])
+        'body': json.dumps(items[0])
     }
 
     return response
@@ -239,6 +243,24 @@ def del_Section(event, context):
     response = {
         'statusCode': 200,
         'body': "Successfully deleted section"
+    }
+
+    return response
+
+def del_Text(event, context):
+    txt_id = '{}'.format(event['pathParameters']['txtID'])
+    section_name = '{}'.format(event['pathParameters']['secName'])
+
+    table = dynamodb.Table(TEXT_TABLE)
+    resp = table.delete_item(
+        Key={
+            "text_id": txt_id
+        }
+    )
+
+    response = {
+        'statusCode': 200,
+        'body': "Successfully deleted Text Item"
     }
 
     return response
