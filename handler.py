@@ -225,3 +225,20 @@ def get_Section_Content(event, context):
     }
 
     return response
+
+def del_Section(event, context):
+    section_name = '{}'.format(event['pathParameters']['secName'])
+
+    table = dynamodb.Table(SECTIONS_TABLE)
+    resp = table.delete_item(
+        Key={
+            "name": section_name
+        }
+    )
+    
+    response = {
+        'statusCode': 200,
+        'body': "Successfully deleted section"
+    }
+
+    return response

@@ -75,7 +75,17 @@ functions:                                    #our lambda functions
             parameters:
               paths:
                 secName: true
-
+  delSection:
+    handler: handler.del_Section
+    events:
+      - http:
+          path: delSection/{secName}
+          method: delete
+          cors: true
+          request:
+            parameters:
+              paths:
+                secName: true
 resources:            
   Resources:                                                #here we are defining our dynamodb tables
     SectionsTable:
