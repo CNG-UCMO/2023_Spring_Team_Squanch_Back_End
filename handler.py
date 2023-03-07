@@ -80,11 +80,11 @@ def insert_Image(event, context):
         }
     )
 
-    newItem = { 'imgID': {}, 'imgHTML': {} }
+    #newItem = { 'imgID': {}, 'imgHTML': {} }
 
     
-    newItem['imgID']['S'] = img_id
-    newItem['imgHTML']['S'] = html
+    #newItem['imgID']['S'] = img_id
+    #newItem['imgHTML']['S'] = html
 
     #updating the content column of the section we placed the image in. It will hold the string representing the html image element
     #need to figure out how to not overwrite what was previously in there 
@@ -93,10 +93,10 @@ def insert_Image(event, context):
         Key={
             'name': {'S': section}
         },
-        UpdateExpression='SET ImageContent = list_append(if_not_exists(content, :empty_list), :imgContent)',
+        UpdateExpression='SET ImageContent = list_append(if_not_exists(ImageContent, :empty_list), :imgContent)',
         ExpressionAttributeValues={
             ':imgContent': {'L': [{
-                'M': newItem
+                'S': img_id
             }]},
             ':empty_list':{'L': []}
         }
@@ -170,10 +170,10 @@ def insert_Text(event, context):
         }
     )
 
-    newItem = { 'txtID': {}, 'txtHTML': {} }
+    #newItem = { 'txtID': {}, 'txtHTML': {} }
 
-    newItem['txtID']['S'] = text_id
-    newItem['txtHTML']['S'] = html
+    #newItem['txtID']['S'] = text_id
+    #newItem['txtHTML']['S'] = html
 
     #updates the section table and its content attribute. We place the html string in there
     client.update_item(
@@ -181,10 +181,10 @@ def insert_Text(event, context):
         Key={
             'name': {'S': section}
         },
-        UpdateExpression='SET TextContent = list_append(if_not_exists(content, :empty_list), :txtContent)',
+        UpdateExpression='SET TextContent = list_append(if_not_exists(TextContent, :empty_list), :txtContent)',
         ExpressionAttributeValues={
             ':txtContent': {'L': [{ 
-                'M' : newItem
+                'S' : text_id
             }]},
             ':empty_list':{'L': []}
         }
@@ -218,14 +218,35 @@ def get_Sections(event, context):
 def get_Section_Content(event, context):
     section_name = '{}'.format(event['pathParameters']['secName'])
 
-    table = dynamodb.Table(SECTIONS_TABLE)
-    resp = table.query(KeyConditionExpression=Key('name').eq(section_name))
+    table0 = dynamodb.Table(SECTIONS_TABLE)
+    resp = table0.query(KeyConditionExpression=Key('name').eq(section_name))
 
     items = resp.get("Items", None)
-    
+
+    ImageContent = items[0]['ImageContent']
+    TextContent = items[0]['TextContent']
+
+    imgList = []
+    txtList = []
+
+    table1 = dynamodb.Table(IMAGES_TABLE)
+    table2 = dynamodb.Table(TEXT_TABLE)
+
+    for val in ImageContent:
+        resp1 = table1.query(KeyConditionExpression=Key('img_id').eq(val))
+        items1 = resp1.get("Items", None)
+        imgList.append({'id':val, 'html':items1[0]['html']})
+
+    for val in TextContent:
+        resp2 = table2.query(KeyConditionExpression=Key('text_id').eq(val))
+        items2 = resp2.get("Items", None)
+        txtList.append({'id':val, 'html':items2[0]['html']})
+
+    sectionContent = {'images':imgList, 'text':txtList}
+
     response = {
         'statusCode': 200,
-        'body': json.dumps(items[0])
+        'body': json.dumps(sectionContent) 
     }
 
     return response
@@ -257,6 +278,23 @@ def del_Text(event, context):
             "text_id": txt_id
         }
     )
+
+    table0 = dynamodb.Table(SECTIONS_TABLE)
+    resp = table0.query(KeyConditionExpression=Key('name').eq(section_name))
+
+    items = resp.get("Items", None)
+    TextContent = items[0]['TextContent']
+    
+    for idx, val in enumerate(TextContent):
+        if val == txt_id:
+            client.update_item(
+                TableName=SECTIONS_TABLE,
+                Key={
+                    'name': {'S': section_name}
+                },
+                UpdateExpression='REMOVE TextContent[%d]' % (idx)
+            )
+            break
 
     response = {
         'statusCode': 200,
