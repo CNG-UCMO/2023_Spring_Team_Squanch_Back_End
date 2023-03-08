@@ -33,12 +33,10 @@ def add_section(event, context):
         ExpressionAttributeNames={"#name": "name"}
     )
    
-   #this will be included in the response. It contains the html string
     body = {
         "name": {'S': name}
     }
 
-    #this is what we will return to whoever called us.  
     response = {
         "statusCode": 200,
         "body": json.dumps(body)
@@ -80,14 +78,7 @@ def insert_Image(event, context):
         }
     )
 
-    #newItem = { 'imgID': {}, 'imgHTML': {} }
-
-    
-    #newItem['imgID']['S'] = img_id
-    #newItem['imgHTML']['S'] = html
-
     #updating the content column of the section we placed the image in. It will hold the string representing the html image element
-    #need to figure out how to not overwrite what was previously in there 
     client.update_item(
         TableName=SECTIONS_TABLE,
         Key={
@@ -102,14 +93,12 @@ def insert_Image(event, context):
         }
     )
 
-    #this will be included in the response. It contains the html string. probably don't need to include all this info
     body = {
             "section": {'S': section},
             "img_id": {'S': img_id},
             'html' : {'S': html}
     }
 
-    #this is what we will return to whoever called us. 
     response = {
         "statusCode": 200,
         "body": json.dumps(body),
@@ -118,7 +107,6 @@ def insert_Image(event, context):
     return response
 
 
-#this happens when the user adds a text element to the web page
 def insert_Text(event, context):
     data = json.loads(event['body'])
 
@@ -129,31 +117,31 @@ def insert_Text(event, context):
     content = '{}'.format(data['content'])
 
     unorderedList = data['ul'] #checks if the user requested an unordered list
-    orderedList = data['ol'] 
+    orderedList = data['ol']
+    header = data['header']
     
-    #if the user requested a list the data will have this information as well
-    list_title = '{}'.format(data['list_title'])
-    list_content = '{}'.format(data['list_content'])
-
     #here i'm splitting the string on the comma, so that we can access each element individually
     #if there is a better way to do this feel free to make changes
-    item_list = list_content.split(", ")
+    if orderedList or unorderedList:
+        content = content.split(", ")
 
     list_html = ''
     html = ''
 
     #checks if a list was requested. we are generating li elements for each element in the list
     if unorderedList or orderedList:
-        for item in item_list:
+        for item in content:
             list_html += '<li>' + item + '</li>\n'
     
     #the html string will be made with either <p>, <ul>, or <ol> tags depending on what was requested
-    if unorderedList and orderedList: 
+    if unorderedList == False and orderedList == False and header == False: 
         html = '<p>' + content + '</p>'
     elif unorderedList:
         html = '<ul>' +  list_html + '</ul>'
     elif orderedList:
         html = '<ol>' +  list_html + '</ol>'
+    elif header:
+        html = '<h3>' + content + '</h3>'
 
     #places the item in the text table
     resp = client.put_item(
@@ -161,19 +149,12 @@ def insert_Text(event, context):
         Item={
             'section': {'S': section},
             'text_id': {'S': text_id},
-            'content': {'S': content},
-            'list_title': {'S': list_title},
-            'list_content': {'S': list_content},
+            'header': {'BOOL': header},
             'ul': {'BOOL': unorderedList},
             'ol': {'BOOL': orderedList}, 
             'html': {'S': html}
         }
     )
-
-    #newItem = { 'txtID': {}, 'txtHTML': {} }
-
-    #newItem['txtID']['S'] = text_id
-    #newItem['txtHTML']['S'] = html
 
     #updates the section table and its content attribute. We place the html string in there
     client.update_item(
@@ -190,14 +171,12 @@ def insert_Text(event, context):
         }
     )
 
-    #this is included in the response
     body = {
             "section": {'S': section},
             "text_id": {'S': text_id},
             "html": {'S': html}
     }
 
-    #this is what we're sending back to whoever called us
     response = {
         "statusCode": 200,
         "body": json.dumps(body),
@@ -299,6 +278,100 @@ def del_Text(event, context):
     response = {
         'statusCode': 200,
         'body': "Successfully deleted Text Item"
+    }
+
+    return response
+
+def del_Image(event, context):
+    img_id = '{}'.format(event['pathParameters']['imgID'])
+    section_name = '{}'.format(event['pathParameters']['secName'])
+
+    table = dynamodb.Table(IMAGES_TABLE)
+    resp = table.delete_item(
+        Key={
+            "img_id": img_id
+        }
+    )
+
+    table0 = dynamodb.Table(SECTIONS_TABLE)
+    resp = table0.query(KeyConditionExpression=Key('name').eq(section_name))
+
+    items = resp.get("Items", None)
+    ImageContent = items[0]['ImageContent']
+    
+    for idx, val in enumerate(ImageContent):
+        if val == img_id:
+            client.update_item(
+                TableName=SECTIONS_TABLE,
+                Key={
+                    'name': {'S': section_name}
+                },
+                UpdateExpression='REMOVE ImageContent[%d]' % (idx)
+            )
+            break
+
+    response = {
+        'statusCode': 200,
+        'body': "Successfully deleted Image"
+    }
+
+    return response
+
+
+def update_Text(event, context):
+    data = json.loads(event['body'])
+
+    #retrieving the information about the text element from the data passed into the function
+    text_id = '{}'.format(data['text_id'])
+    content = '{}'.format(data['content'])
+
+    table = dynamodb.Table(TEXT_TABLE)
+    resp = table.query(KeyConditionExpression=Key('text_id').eq(text_id))
+    items = resp.get("Items", None)
+
+    if items[0]['ol'] or items[0]['ul']:
+        content = content.split(", ")
+
+    list_html = ''
+    html = ''
+
+    #checks if a list was requested. we are generating li elements for each element in the list
+    if items[0]['ol'] or items[0]['ul']:
+        for item in content:
+            list_html += '<li>' + item + '</li>\n'
+    
+    #the html string will be made with either <p>, <ul>, or <ol> tags depending on what was requested
+    if items[0]['ul'] == False and items[0]['ol'] == False and items[0]['header'] == False: 
+        html = '<p>' + content + '</p>'
+    elif items[0]['ul']:
+        html = '<ul>' +  list_html + '</ul>'
+    elif items[0]['ol']:
+        html = '<ol>' +  list_html + '</ol>'
+    elif items[0]['header']:
+        html = '<h3>' + content + '</h3>'
+
+    #updates the section table and its content attribute. We place the html string in there
+    client.update_item(
+        TableName=TEXT_TABLE,
+        Key={
+            'text_id': {'S': text_id}
+        },
+        UpdateExpression='SET html = :txtHTML',
+        ExpressionAttributeValues={
+            ':txtHTML': { 
+                'S' : html
+            }
+        },
+    )
+
+    body = {
+            "text_id": {'S': text_id},
+            "html": {'S': html}
+    }
+
+    response = {
+        "statusCode": 200,
+        "body": json.dumps(body),
     }
 
     return response

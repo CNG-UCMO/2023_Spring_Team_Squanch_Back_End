@@ -98,6 +98,25 @@ functions:                                    #our lambda functions
               paths:
                 txtID: true
                 secName: true
+  delImage:
+    handler: handler.del_Image
+    events:
+      - http:
+          path: delImage/{imgID}/{secName}
+          method: delete
+          cors: true
+          request:
+            parameters:
+              paths:
+                imgID: true
+                secName: true
+  updateText:
+    handler: handler.update_Text
+    events:
+      - http:
+          path: updateText
+          method: put
+          cors: true  
 resources:            
   Resources:                                                #here we are defining our dynamodb tables
     SectionsTable:
