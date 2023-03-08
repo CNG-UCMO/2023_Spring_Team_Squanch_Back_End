@@ -14,8 +14,10 @@ dynamodb = boto3.resource('dynamodb', 'us-east-1')
 client = boto3.client('dynamodb')
 
 def del_Section(event, context):
+    #retrieving what was passed in to this function
     section_name = '{}'.format(event['pathParameters']['secName'])
 
+    #deleting the item from the section table that has the same name as what was passed in as secName
     table = dynamodb.Table(SECTIONS_TABLE)
     resp = table.delete_item(
         Key={
@@ -31,9 +33,11 @@ def del_Section(event, context):
     return response
 
 def del_Text(event, context):
+    #retrieving what was passed in to this function 
     txt_id = '{}'.format(event['pathParameters']['txtID'])
     section_name = '{}'.format(event['pathParameters']['secName'])
 
+    #deleting the item from the text table that has the same id as what was passed in as txtID
     table = dynamodb.Table(TEXT_TABLE)
     resp = table.delete_item(
         Key={
@@ -41,13 +45,19 @@ def del_Text(event, context):
         }
     )
 
+    #retrieves the item from the section table that has the same section name as the one passed into the function
     table0 = dynamodb.Table(SECTIONS_TABLE)
     resp = table0.query(KeyConditionExpression=Key('name').eq(section_name))
-
     items = resp.get("Items", None)
+
+    #This is the list of Text element id's that are within this section  
     TextContent = items[0]['TextContent']
     
+
+    #iterating through the list of Text Element id's 
     for idx, val in enumerate(TextContent):
+        #checking if the current id value in the list matches what was passed into the function
+        #deletes it from the list if it matches
         if val == txt_id:
             client.update_item(
                 TableName=SECTIONS_TABLE,
@@ -66,9 +76,11 @@ def del_Text(event, context):
     return response
 
 def del_Image(event, context):
+    #retrieving what was passed in to this function 
     img_id = '{}'.format(event['pathParameters']['imgID'])
     section_name = '{}'.format(event['pathParameters']['secName'])
 
+    #deleting the item from the images table that has the same id as what was passed in as imgID
     table = dynamodb.Table(IMAGES_TABLE)
     resp = table.delete_item(
         Key={
@@ -76,13 +88,18 @@ def del_Image(event, context):
         }
     )
 
+    #retrieves the item from the section table that has the same section name as the one passed into the function
     table0 = dynamodb.Table(SECTIONS_TABLE)
     resp = table0.query(KeyConditionExpression=Key('name').eq(section_name))
-
     items = resp.get("Items", None)
+
+    #This is the list of Image Element id's that are within this section 
     ImageContent = items[0]['ImageContent']
     
+    #iterating through the list of Image Element id's 
     for idx, val in enumerate(ImageContent):
+        #checking if the current id value in the list matches what was passed into the function
+        #deletes it from the list if it matches
         if val == img_id:
             client.update_item(
                 TableName=SECTIONS_TABLE,

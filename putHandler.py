@@ -20,22 +20,24 @@ def update_Text(event, context):
     text_id = '{}'.format(data['text_id'])
     content = '{}'.format(data['content'])
 
+    #getting the item from the text table that has the same id as what was passed to this method
     table = dynamodb.Table(TEXT_TABLE)
     resp = table.query(KeyConditionExpression=Key('text_id').eq(text_id))
     items = resp.get("Items", None)
 
+    #if the item is a list we need to turn the data in content into a list
     if items[0]['ol'] or items[0]['ul']:
         content = content.split(", ")
 
     list_html = ''
     html = ''
 
-    #checks if a list was requested. we are generating li elements for each element in the list
+    #We are generating li elements for each element if it is an ordered or unordered list
     if items[0]['ol'] or items[0]['ul']:
         for item in content:
             list_html += '<li>' + item + '</li>\n'
     
-    #the html string will be made with either <p>, <ul>, or <ol> tags depending on what was requested
+    #the html string will be made with either <p>, <ul>, <h3> or <ol> tags depending on what the original item was
     if items[0]['ul'] == False and items[0]['ol'] == False and items[0]['header'] == False: 
         html = '<p>' + content + '</p>'
     elif items[0]['ul']:
