@@ -33,7 +33,7 @@ provider:
 
 functions:                                    #our lambda functions 
   addSection:
-    handler: handler.add_section              
+    handler: postHandler.add_section              
     events:                                   #here we are defining the events that cause our functions execute
       - http:
           path: addSection                    #when someone makes a post request at the endpoint specified by path the function runs
@@ -41,7 +41,7 @@ functions:                                    #our lambda functions
           cors: true
 
   addImages:
-    handler: handler.insert_Image
+    handler: postHandler.insert_Image
     events:
       - http:
           path: placeImage
@@ -49,7 +49,7 @@ functions:                                    #our lambda functions
           cors: true
   
   addText:
-    handler: handler.insert_Text
+    handler: postHandler.insert_Text
     events:
       - http:
           path: placeText
@@ -57,7 +57,7 @@ functions:                                    #our lambda functions
           cors: true  
 
   getSections:
-    handler: handler.get_Sections
+    handler: getHandler.get_Sections
     events:
       - http:
           path: getSections
@@ -65,7 +65,7 @@ functions:                                    #our lambda functions
           cors: true
 
   getSectionContent:
-    handler: handler.get_Section_Content
+    handler: getHandler.get_Section_Content
     events:
       - http:
           path: getSectionContent/{secName}
@@ -76,7 +76,7 @@ functions:                                    #our lambda functions
               paths:
                 secName: true
   delSection:
-    handler: handler.del_Section
+    handler: delHandler.del_Section
     events:
       - http:
           path: delSection/{secName}
@@ -87,7 +87,7 @@ functions:                                    #our lambda functions
               paths:
                 secName: true
   delText:
-    handler: handler.del_Text
+    handler: delHandler.del_Text
     events:
       - http:
           path: delText/{txtID}/{secName}
@@ -99,7 +99,7 @@ functions:                                    #our lambda functions
                 txtID: true
                 secName: true
   delImage:
-    handler: handler.del_Image
+    handler: delHandler.del_Image
     events:
       - http:
           path: delImage/{imgID}/{secName}
@@ -111,7 +111,7 @@ functions:                                    #our lambda functions
                 imgID: true
                 secName: true
   updateText:
-    handler: handler.update_Text
+    handler: putHandler.update_Text
     events:
       - http:
           path: updateText
