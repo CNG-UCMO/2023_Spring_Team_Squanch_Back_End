@@ -47,7 +47,6 @@ def update_Text(event, context):
     elif items[0]['header']:
         html = '<h3>' + content + '</h3>'
 
-    #updates the section table and its content attribute. We place the html string in there
     client.update_item(
         TableName=TEXT_TABLE,
         Key={
