@@ -54,69 +54,8 @@ functions:                                    #our lambda functions
       - http:
           path: placeText
           method: post
-          cors: true  
-
-  getSections:
-    handler: getHandler.get_Sections
-    events:
-      - http:
-          path: getSections
-          method: get
-          cors: true
-
-  getSectionContent:
-    handler: getHandler.get_Section_Content
-    events:
-      - http:
-          path: getSectionContent/{secName}
-          method: get
-          cors: true
-          request:
-            parameters:
-              paths:
-                secName: true
-  delSection:
-    handler: delHandler.del_Section
-    events:
-      - http:
-          path: delSection/{secName}
-          method: delete
-          cors: true
-          request:
-            parameters:
-              paths:
-                secName: true
-  delText:
-    handler: delHandler.del_Text
-    events:
-      - http:
-          path: delText/{txtID}/{secName}
-          method: delete
-          cors: true
-          request:
-            parameters:
-              paths:
-                txtID: true
-                secName: true
-  delImage:
-    handler: delHandler.del_Image
-    events:
-      - http:
-          path: delImage/{imgID}/{secName}
-          method: delete
-          cors: true
-          request:
-            parameters:
-              paths:
-                imgID: true
-                secName: true
-  updateText:
-    handler: putHandler.update_Text
-    events:
-      - http:
-          path: updateText
-          method: put
-          cors: true  
+          cors: true   
+           
 resources:            
   Resources:                                                #here we are defining our dynamodb tables
     SectionsTable:
