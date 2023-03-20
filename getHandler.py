@@ -21,6 +21,7 @@ def get_Sections(event, context):
 
     response = {
         'statusCode': 200,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         'body': json.dumps(resp)
     }
 
@@ -62,6 +63,7 @@ def get_Section_Content(event, context):
 
     response = {
         'statusCode': 200,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         'body': json.dumps(sectionContent) 
     }
 

@@ -68,6 +68,7 @@ def update_Text(event, context):
 
     response = {
         "statusCode": 200,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         "body": json.dumps(body),
     }
 

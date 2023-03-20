@@ -27,7 +27,8 @@ def del_Section(event, context):
     
     response = {
         'statusCode': 200,
-        'body': "Successfully deleted section"
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+        'body': "Successfully deleted the section"
     }
 
     return response
@@ -70,7 +71,8 @@ def del_Text(event, context):
 
     response = {
         'statusCode': 200,
-        'body': "Successfully deleted Text Item"
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+        'body': "Successfully deleted Image"
     }
 
     return response
@@ -112,6 +114,7 @@ def del_Image(event, context):
 
     response = {
         'statusCode': 200,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         'body': "Successfully deleted Image"
     }
 
