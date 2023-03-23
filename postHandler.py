@@ -34,11 +34,12 @@ def add_section(event, context):
     )
    
     body = {
-        "name": {'S': name}
+        "name": name
     }
 
     response = {
         "statusCode": 200,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         "body": json.dumps(body)
     }
 
@@ -94,13 +95,14 @@ def insert_Image(event, context):
     )
 
     body = {
-            "section": {'S': section},
-            "img_id": {'S': img_id},
-            'html' : {'S': html}
+            "section": section,
+            "img_id": img_id,
+            'html' : html
     }
 
     response = {
         "statusCode": 200,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         "body": json.dumps(body),
     }
 
@@ -172,13 +174,14 @@ def insert_Text(event, context):
     )
 
     body = {
-            "section": {'S': section},
-            "text_id": {'S': text_id},
-            "html": {'S': html}
+            "section": section,
+            "text_id": text_id,
+            "html": html
     }
 
     response = {
         "statusCode": 200,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         "body": json.dumps(body),
     }
 
