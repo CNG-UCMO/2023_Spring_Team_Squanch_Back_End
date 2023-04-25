@@ -15,7 +15,7 @@ client = boto3.client('dynamodb')
 
 #this happens when the user adds a section to the web page
 def add_section(event, context):
-    data = json.loads(event['body']) 
+    data = json.loads(event['body'])
 
     name = '{}'.format(data['name'])   #retrieves the name that was passed into this function, and formats it to a string 
     imgContent = []

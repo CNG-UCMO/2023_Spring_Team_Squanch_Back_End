@@ -14,7 +14,7 @@ dynamodb = boto3.resource('dynamodb', 'us-east-1')
 client = boto3.client('dynamodb')
 
 def del_Section(event, context):
-    #retrieving what was passed in to this function
+    #retrieving what was passed into this function
     section_name = '{}'.format(event['pathParameters']['secName'])
 
     #deleting the item from the section table that has the same name as what was passed in as secName
