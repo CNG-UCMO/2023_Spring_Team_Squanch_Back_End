@@ -13,11 +13,12 @@ dynamodb = boto3.resource('dynamodb', 'us-east-1')
 
 client = boto3.client('dynamodb')
 
-#this happens when the user adds a section to the web page
+#this happens when the user creates a section
 def add_section(event, context):
     data = json.loads(event['body']) 
 
     name = '{}'.format(data['name'])   #retrieves the name that was passed into this function, and formats it to a string 
+    
     imgContent = []
     txtContent = []
 

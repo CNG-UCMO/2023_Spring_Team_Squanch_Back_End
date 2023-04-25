@@ -29,10 +29,10 @@ def get_Sections(event, context):
 
 def get_Section_Content(event, context):
 
-    #We get the name of the section that was passed to this function
+    #we get the name of the section that was passed to this function
     section_name = '{}'.format(event['pathParameters']['secName'])
 
-    #We retrieve the item from the section table that has the same name as what was passed into the function
+    #we retrieve the item from the section table that has the same name as what was passed into the function
     table0 = dynamodb.Table(SECTIONS_TABLE)
     resp = table0.query(KeyConditionExpression=Key('name').eq(section_name))
     items = resp.get("Items", None)
@@ -41,6 +41,7 @@ def get_Section_Content(event, context):
     ImageContent = items[0]['ImageContent']
     TextContent = items[0]['TextContent']
 
+    #these lists will be storing the id's of the images and text items that are in the section
     imgList = []
     txtList = []
 
@@ -59,6 +60,7 @@ def get_Section_Content(event, context):
         items2 = resp2.get("Items", None)
         txtList.append({'id':val, 'html':items2[0]['html']})
 
+    #This is what we will be returning in the response
     sectionContent = {'images':imgList, 'text':txtList}
 
     response = {
